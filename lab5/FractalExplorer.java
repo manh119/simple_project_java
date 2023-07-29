@@ -33,6 +33,10 @@ public class FractalExplorer {
     private FractalGenerator fractalTricorn;
     /** The current viewing area in our image. **/
     private Rectangle2D.Double range;
+    private int remainRows;
+    JComboBox<String> comboBox;
+    JButton saveButton;
+    JButton resetButton;
     
     /** Basic constructor. Initializes the display image, fractal generator,
      * and initial viewing area.
@@ -44,7 +48,8 @@ public class FractalExplorer {
         this.fractalTricorn = new Tricorn();
         this.fractal = fractalTricorn; // init fractal is Mandelbrot
         this.range = new Rectangle2D.Double(0, 0, 0, 0);
-        fractal.getInitialRange(this.range);        
+        fractal.getInitialRange(this.range);  
+        remainRows = 0;
     }
     
     /**
@@ -57,13 +62,13 @@ public class FractalExplorer {
         
         // conntainer to contain Label and combobox
         JPanel fractalPanel = new JPanel(new FlowLayout());
-        JComboBox<String> comboBox = new JComboBox<>();
-        JLabel comboboxLabel = new JLabel("fractal : ");
+        comboBox = new JComboBox<>();
+        JLabel comboboxLabel = new JLabel("Fractal : ");
         
         // Tạo container để chứa 2 button
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        JButton resetButton = new JButton("Reset");
-        JButton saveButton = new JButton("Save");
+        resetButton = new JButton("Reset");
+        saveButton = new JButton("Save");
 
         
         /** Add listeners to components. **/
@@ -103,12 +108,22 @@ public class FractalExplorer {
         frame.pack();
         frame.setVisible(true);
         frame.setResizable(false);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);        
+
+    }
+    
+    /** enable or disable UI function **/
+    private void enableUI(boolean val) {
+    	this.saveButton.setEnabled(val);
+    	this.resetButton.setEnabled(val);
+    	this.comboBox.setEnabled(val);
     }
     
     /** Use the fractal generator to draw the fractal pixel by pixel. **/
     private void drawFractal() {
         // each row j
+    	enableUI(false);
+    	remainRows = dispSize;
         for (int j = 0; j < dispSize; j++) {
             FractalWorker drawRowJ = new FractalWorker(j);
             drawRowJ.execute();
@@ -116,7 +131,7 @@ public class FractalExplorer {
 
     }
 
-    
+   
     /** Simple Class for RESET BUTTON **/
     public class resetButtonHandler implements ActionListener { 
         public void actionPerformed(ActionEvent e) {
@@ -188,23 +203,20 @@ public class FractalExplorer {
     }
     
     /** Simple class handler to zoom in on the clicked pixel on a fractal. **/
-    public class MouseHandler extends MouseAdapter {
-    	
+    public class MouseHandler extends MouseAdapter {    	
         @Override
         public void mouseClicked(MouseEvent e) {
-            long startTime = System.currentTimeMillis();
-
+        	System.out.println("from mouse handler, remainRows is " + remainRows);
+        	if(remainRows > 0)
+        		return;
             double xCoord = FractalGenerator.getCoord(range.x, 
                     range.x + range.width, dispSize, e.getX());
             double yCoord = FractalGenerator.getCoord(range.y, 
                     range.y + range.width, dispSize, e.getY());
             fractal.recenterAndZoomRange(range, xCoord, yCoord, 0.5);
+            System.out.println("mouse clicked at " + xCoord + " " + yCoord);
             drawFractal();
-            
-
-            long endTime = System.currentTimeMillis();
-            long elapsedTime = endTime - startTime;
-            System.out.println("Total time taken: " + elapsedTime + " milliseconds");
+         
         }
     }
     /** fractal worker for multithread : COMPUTE and DRAW ONE ROW **/
@@ -247,6 +259,11 @@ public class FractalExplorer {
     		for (int i = 0; i < dispSize; i++) 
     			jImage.drawPixel(i, rowY, arrayY[i]);
     		jImage.repaint(0, rowY, dispSize, 1);
+    		
+    		// check remain row, if done draw for full image, enable UI
+    		remainRows--;
+    		if(remainRows == 0)
+    			enableUI(true);   			
     	}
     }
     
