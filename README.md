@@ -4,6 +4,7 @@ http://courses.cms.caltech.edu/cs11/material/java/donnie/index.html
 Lab 1: Diving Right In 
 
 Lab 2: I'm A Star! 
+
 task : find a path from one to another by using A* algorithm
 
 
@@ -11,6 +12,7 @@ task : find a path from one to another by using A* algorithm
 
 
 Lab 3: Fractal Explorer 
+
 task : display the image fractal, zoom it by clicking the mouse or reset it to the original image
 
 
@@ -18,6 +20,7 @@ task : display the image fractal, zoom it by clicking the mouse or reset it to t
 
 
 Lab 4: Choosing and Saving Fractals 
+
 task : add another image fractal in the combobox, add save the image fractal in the file
 
 
@@ -25,6 +28,7 @@ task : add another image fractal in the combobox, add save the image fractal in 
 
 
 Lab 5: Multithreaded Fractals 
+
 task : draw each row in an image by using a thread concurrency instead of one thread, it will not help accelerate draw an image but it will help 
 image is not frozen during the drawing image.
 
