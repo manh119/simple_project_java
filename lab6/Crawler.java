@@ -7,6 +7,8 @@ import java.net.MalformedURLException;
 import java.net.URL;
 import javax.net.ssl.HttpsURLConnection;
 import java.util.LinkedList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class Crawler {
 
@@ -56,21 +58,19 @@ public class Crawler {
                 String line;
                 
                 // cut next URL from HTML web page and add it to toVisit LinkList 
+                final String pattern = "https?://[^\\\"]+(?=\\\")";
                 System.out.println("cut next URL from HTML web page...");
                 while ((line = reader.readLine()) != null) {
-                	while (line.contains("<a href=\"https://")) {
-                		int startIndex = line.indexOf("<a href=\"https://") + 9;
-                        int endIndex = line.indexOf("\"", startIndex);
-
-                        String newURL = line.substring(startIndex, endIndex);
+        	        Pattern regex = Pattern.compile(pattern);
+        	        Matcher matcher = regex.matcher(line);
+        	        
+        	        while (matcher.find()) {
+        	            String newURL = matcher.group();       	        
 
                         URLDepthPair newPair = new URLDepthPair(newURL, currentDepth + 1);
                         if (!visited.contains(newPair) && !toVisit.contains(newPair)) {
                         	toVisit.add(newPair);
                         }
-                        
-                        // remaining of line
-                        line = line.substring(endIndex + 1);
                     }
                 }
 	
