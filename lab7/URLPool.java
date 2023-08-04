@@ -1,5 +1,7 @@
 package lab7;
 
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.*;
 
 // List of URLDepthPair
@@ -7,34 +9,35 @@ class URLPool {
     private LinkedList<URLDepthPair> pendingURLs;
     private LinkedList<String> visitedURLs;
     private int nWaitingThreads;
-    private int maxDepth;
 
-    public URLPool(int maxDepth) {
+    public URLPool() {
         pendingURLs = new LinkedList<>();
         visitedURLs = new LinkedList<>();
         nWaitingThreads = 0;
-        this.maxDepth = maxDepth;
     }
     
     /**
      * only add to pendingURLS if this URL haven't been in List
-     * if this URL have depth >= maxDepth, it should add to visitedURL 
      * @param urlDepthPair
      */
-    public synchronized void addURLPair(URLDepthPair urlDepthPair) {
-    	String url = urlDepthPair.getURL();
-        if (!visitedURLs.contains(url) && !pendingURLs.contains(urlDepthPair)) 
-        {
-        	if (urlDepthPair.getDepth() < maxDepth) {
-        		pendingURLs.addLast(urlDepthPair);
-                notify();
-        	}            
-            else 
-            	visitedURLs.add(url);            	
-        }
+    public synchronized void addToPendingURLs(URLDepthPair urlDepthPair) {    	
+        if (!pendingURLs.contains(urlDepthPair)) 
+        { 
+        	pendingURLs.addLast(urlDepthPair);
+            notify();
+        }            
     }
 
-    public synchronized URLDepthPair getURLPair() {
+    public synchronized void addToVisitedURLs(URLDepthPair urlDepthPair) {
+    	String url = urlDepthPair.getURL();
+    	if (!visitedURLs.contains(url))
+    		visitedURLs.add(url);
+    }
+    
+    /* get and remove URLPair from pending List
+     * If pendingURLs is empty, must wait() until it has a new URL
+     * */
+    public synchronized URLDepthPair getNewURLPair() {
     	// wait for case URLpool is being empty
         while (pendingURLs.isEmpty()) {
             try {
@@ -48,10 +51,13 @@ class URLPool {
         }
 
         URLDepthPair urlDepthPair = pendingURLs.removeFirst();
-        visitedURLs.add(urlDepthPair.getURL());
         return urlDepthPair;
     }
 
+    public synchronized LinkedList<String> getVistedThreads() {
+        return this.visitedURLs;
+    }
+    
     public synchronized int getWaitingThreads() {
         return nWaitingThreads;
     }

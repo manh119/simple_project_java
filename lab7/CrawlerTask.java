@@ -12,24 +12,30 @@ import javax.net.ssl.HttpsURLConnection;
 
 class CrawlerTask implements Runnable {
     private URLPool urlPool;
+    private int maxDepth;
 
-    public CrawlerTask(URLPool urlPool) {
+    public CrawlerTask(URLPool urlPool, int maxDepth) {
         this.urlPool = urlPool;
+        this.maxDepth = maxDepth;
     }
     
     /** 
-     * 	get one URL from urlPool
+     * 	pop a new URL from urlPool, and it to visitedURLs
      * 	connect to this URL by HTTP connect 
      * 	take new URL from HTML page
-     * 	add new URL to urlPool
+     * 	check maxDepth and add new URL to pedingURLs
      * 										**/
     @Override
     public void run() {
     	while (true) {
-            URLDepthPair currentPair = urlPool.getURLPair();
+            URLDepthPair currentPair = urlPool.getNewURLPair();
+            urlPool.addToVisitedURLs(currentPair);
             int currentDepth = currentPair.getDepth();
         	String currentURL = currentPair.getURL();
 
+        	if (currentDepth == this.maxDepth)
+        		continue;
+        	
             try { 
             	// connect to this URL by HTTP connect 
             	System.out.println("send request HTML to URL : " + currentDepth + " " + currentURL );
@@ -42,6 +48,7 @@ class CrawlerTask implements Runnable {
                 // take new URL from HTML page 
                 final String pattern = "https?://[^\\\"]+(?=\\\"\\>)";
                 System.out.println("cut next URL from HTML web page...");
+                
                 while ((line = reader.readLine()) != null) {
         	        Pattern regex = Pattern.compile(pattern);
         	        Matcher matcher = regex.matcher(line);
@@ -49,9 +56,8 @@ class CrawlerTask implements Runnable {
         	        // add new URL to urlPool
         	        while (matcher.find()) {
         	            String newURL = matcher.group();  	        
-
                         URLDepthPair newPair = new URLDepthPair(newURL, currentDepth + 1);
-                        urlPool.addURLPair(newPair);
+                        urlPool.addToPendingURLs(newPair);
                     }
                 }
 	
